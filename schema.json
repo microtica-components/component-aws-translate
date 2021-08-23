@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "schema://microtica/component-aws-translate.json",
+    "title": "Component Schema",
+    "type": "object",
+    "properties": {
+        "inputs": {
+            "type": "object",
+            "properties": {
+            },
+            "required": [
+            ]
+        }
+    },
+    "additionalProperties": false
+}

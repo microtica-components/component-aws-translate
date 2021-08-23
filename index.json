@@ -1,0 +1,50 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Resources": {
+        "Lambda": {
+            "Type": "AWS::Serverless::Function",
+            "Properties": {
+                "Handler": "index.handler",
+                "Runtime": "nodejs12.x",
+                "InlineCode": "const { Translate } = require(\"aws-sdk\");\n\nexports.handler = async function(event, context) {\n    console.log(\"EVENT\", JSON.stringify(event));\n\n    const body = JSON.parse(event.body);\n\n    const { TranslatedText: translatedText } = await new Translate({ region: \"eu-central-1\" }).translateText({\n        SourceLanguageCode: body.sourceLanguage,\n        TargetLanguageCode: body.targetLanguage,\n        Text: body.text\n    }).promise();\n\n    const response = {\n        statusCode: 200,\n        body:JSON.stringify({translatedText})\n    };\n    return response;\n}\n",
+                "Policies": [
+                    "AWSLambdaExecute",
+                    {
+                        "Version": "2012-10-17",
+                        "Statement": {
+                            "Effect": "Allow",
+                            "Action": "translate:TranslateText",
+                            "Resource": "*"
+                        } 
+                    }
+                ],
+                "Events": {
+                    "ApiEvent": {
+                        "Type": "Api",
+                        "Properties": {
+                            "Path": "/translation",
+                            "Method": "post",
+                            "RestApiId": {
+                                "Ref": "ApiGatewayApi"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ApiGatewayApi": {
+            "Type": "AWS::Serverless::Api",
+            "Properties": {
+                "StageName": "prod"
+            }
+        }
+    },
+    "Outputs": {
+        "ApiUrl": {
+            "Value": {
+                "Fn::Sub": "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+            }
+        }
+    }
+}
